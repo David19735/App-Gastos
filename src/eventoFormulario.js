@@ -30,5 +30,5 @@ boton.addEventListener('click',(e)=>{
 
 });
 
-
+export {abrirFormulario,cerrarFormulario};
 
