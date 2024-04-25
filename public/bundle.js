@@ -4037,6 +4037,26 @@ contenedorGastos.addEventListener('click',(e)=>{
 
     }
 
+    if(e.target.closest('[data-accion="eliminar-gasto"]')){
+        
+        const id=gasto?.dataset?.id;
+        const gastosGuardados=JSON.parse(window.localStorage.getItem('gastos'));
+
+
+        const nuevosGastos=gastosGuardados.filter((gasto)=>{
+            if(gasto.id!==id){
+                return gasto;
+            }
+        });
+
+        
+        window.localStorage.setItem('gastos',JSON.stringify(nuevosGastos));
+
+        renderGasto();
+       
+
+    }
+
 
 
 });
