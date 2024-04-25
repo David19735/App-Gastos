@@ -3,9 +3,29 @@ const boton=document.getElementById('toggle-form-gasto');
 
 //Función para abrir el formulario
 
-const abrirFormulario=()=>{
+const abrirFormulario=(modo)=>{
+    
     contenedorFormulario.classList.add('formulario-gasto--active');
     boton.classList.add('agregar-gasto__btn--active');
+
+
+    if(modo==="agregarGasto"){
+
+        document.querySelector('.formulario-gasto__titulo').innerHTML="Agregar gasto";
+        document.querySelector('.formulario-gasto__btn').innerHTML="Agregar gasto";
+        document.querySelector('.formulario-gasto').dataset.modo="agregarGasto";
+        document.getElementById('descripcion').value="";
+            document.getElementById('precio').value="";
+
+    }
+    else if(modo==="editarGasto"){
+        
+
+        document.querySelector('.formulario-gasto__titulo').innerHTML="Editar gasto";
+        document.querySelector('.formulario-gasto__btn').innerHTML="Editar gasto";
+        document.querySelector('.formulario-gasto').dataset.modo="editarGasto";
+
+    }
 };
 
 //Función para cerrar el formulario
@@ -25,7 +45,7 @@ boton.addEventListener('click',(e)=>{
 
     }
     else{
-        abrirFormulario();
+        abrirFormulario("agregarGasto");
     }
 
 });

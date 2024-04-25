@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { parseISO } from "date-fns";
 import { es } from "date-fns/locale";
+import { isThisMonth } from "date-fns";
 
 
 
@@ -20,7 +21,16 @@ const renderGasto=()=>{
 
         const formatoMoneda=new Intl.NumberFormat('en-MX',{style:'currency',currency:'MXN'});
 
-        gastos.forEach((gasto)=> {
+
+      const gastosMes=gastos.filter((gasto)=>{
+            if(isThisMonth(parseISO(gasto.fecha))){
+
+                return gasto.fecha;
+            }
+        })
+
+
+        gastosMes.forEach ((gasto)=> {
 
             suma=suma+parseFloat(gasto.precio);
 

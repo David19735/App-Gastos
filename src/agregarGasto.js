@@ -73,6 +73,8 @@ formulario.addEventListener('submit',(e)=>{
 
     e.preventDefault();
 
+    const modo= document.querySelector('.formulario-gasto')?.dataset?.modo;
+
     if(comprobarDescripcion()&&comprobarPrecio()){
 
         const nuevoGasto={
@@ -85,15 +87,48 @@ formulario.addEventListener('submit',(e)=>{
         const gastosGuardados=JSON.parse(window.localStorage.getItem('gastos'));
 
 
-        if(gastosGuardados){
 
-            const nuevosGastos=[...gastosGuardados,nuevoGasto];
-            window.localStorage.setItem('gastos',JSON.stringify(nuevosGastos));
-        }
-        else{
+            if(modo==="agregarGasto"){
 
-            window.localStorage.setItem('gastos',JSON.stringify([{...nuevoGasto}]));
-        }
+                
+                if(gastosGuardados){
+                    
+                    const nuevosGastos=[...gastosGuardados,nuevoGasto];
+                    window.localStorage.setItem('gastos',JSON.stringify(nuevosGastos));
+                }
+                else{
+                    
+                    window.localStorage.setItem('gastos',JSON.stringify([{...nuevoGasto}]));
+                }
+                
+            }
+            else if(modo==="editarGasto"){
+                
+                const id=document.getElementById('formulario-gasto').dataset.id;
+                let indexEditar;
+
+                gastosGuardados.forEach((gasto,index)=> {
+
+                    if(gasto.id===id){
+                        indexEditar=index;
+                    }
+
+                });
+
+                const nuevosGastos=[...gastosGuardados];
+
+                nuevosGastos[indexEditar]={
+                    ...gastosGuardados[indexEditar],
+                    descripcion:descripcion.value,
+                    precio:precio.value
+                }
+
+
+                window.localStorage.setItem('gastos',JSON.stringify(nuevosGastos));
+            }
+        
+        
+
         
         renderGasto();
         cerrarFormulario();
@@ -104,6 +139,8 @@ formulario.addEventListener('submit',(e)=>{
 
         
     }
+
+
 
 });
     

@@ -5,9 +5,29 @@ const boton=document.getElementById('toggle-form-gasto');
 
 //Función para abrir el formulario
 
-const abrirFormulario=()=>{
+const abrirFormulario=(modo)=>{
+    
     contenedorFormulario.classList.add('formulario-gasto--active');
     boton.classList.add('agregar-gasto__btn--active');
+
+
+    if(modo==="agregarGasto"){
+
+        document.querySelector('.formulario-gasto__titulo').innerHTML="Agregar gasto";
+        document.querySelector('.formulario-gasto__btn').innerHTML="Agregar gasto";
+        document.querySelector('.formulario-gasto').dataset.modo="agregarGasto";
+        document.getElementById('descripcion').value="";
+            document.getElementById('precio').value="";
+
+    }
+    else if(modo==="editarGasto"){
+        
+
+        document.querySelector('.formulario-gasto__titulo').innerHTML="Editar gasto";
+        document.querySelector('.formulario-gasto__btn').innerHTML="Editar gasto";
+        document.querySelector('.formulario-gasto').dataset.modo="editarGasto";
+
+    }
 };
 
 //Función para cerrar el formulario
@@ -27,7 +47,7 @@ boton.addEventListener('click',(e)=>{
 
     }
     else {
-        abrirFormulario();
+        abrirFormulario("agregarGasto");
     }
 
 });
@@ -492,6 +512,40 @@ function startOfISOWeekYear(date) {
   fourthOfJanuary.setFullYear(year, 0, 4);
   fourthOfJanuary.setHours(0, 0, 0, 0);
   return startOfISOWeek(fourthOfJanuary);
+}
+
+/**
+ * @name constructNow
+ * @category Generic Helpers
+ * @summary Constructs a new current date using the passed value constructor.
+ * @pure false
+ *
+ * @description
+ * The function constructs a new current date using the constructor from
+ * the reference date. It helps to build generic functions that accept date
+ * extensions and use the current date.
+ *
+ * It defaults to `Date` if the passed reference date is a number or a string.
+ *
+ * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+ *
+ * @param date - The reference date to take constructor from
+ *
+ * @returns Current date initialized using the given date constructor
+ *
+ * @example
+ * import { constructNow, isSameDay } from 'date-fns'
+ *
+ * function isToday<DateType extends Date>(
+ *   date: DateType | number | string,
+ * ): boolean {
+ *   // If we were to use `new Date()` directly, the function would  behave
+ *   // differently in different timezones and return false for the same date.
+ *   return isSameDay(date, constructNow(date));
+ * }
+ */
+function constructNow(date) {
+  return constructFrom(date, Date.now());
 }
 
 /**
@@ -2853,6 +2907,65 @@ function cleanEscapedString(input) {
 }
 
 /**
+ * @name isSameMonth
+ * @category Month Helpers
+ * @summary Are the given dates in the same month (and year)?
+ *
+ * @description
+ * Are the given dates in the same month (and year)?
+ *
+ * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+ *
+ * @param dateLeft - The first date to check
+ * @param dateRight - The second date to check
+ *
+ * @returns The dates are in the same month (and year)
+ *
+ * @example
+ * // Are 2 September 2014 and 25 September 2014 in the same month?
+ * const result = isSameMonth(new Date(2014, 8, 2), new Date(2014, 8, 25))
+ * //=> true
+ *
+ * @example
+ * // Are 2 September 2014 and 25 September 2015 in the same month?
+ * const result = isSameMonth(new Date(2014, 8, 2), new Date(2015, 8, 25))
+ * //=> false
+ */
+function isSameMonth(dateLeft, dateRight) {
+  const _dateLeft = toDate(dateLeft);
+  const _dateRight = toDate(dateRight);
+  return (
+    _dateLeft.getFullYear() === _dateRight.getFullYear() &&
+    _dateLeft.getMonth() === _dateRight.getMonth()
+  );
+}
+
+/**
+ * @name isThisMonth
+ * @category Month Helpers
+ * @summary Is the given date in the same month as the current date?
+ * @pure false
+ *
+ * @description
+ * Is the given date in the same month as the current date?
+ *
+ * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+ *
+ * @param date - The date to check
+ *
+ * @returns The date is in this month
+ *
+ * @example
+ * // If today is 25 September 2014, is 15 September 2014 in this month?
+ * const result = isThisMonth(new Date(2014, 8, 15))
+ * //=> true
+ */
+
+function isThisMonth(date) {
+  return isSameMonth(date, constructNow(date));
+}
+
+/**
  * The {@link parseISO} function options.
  */
 
@@ -3650,7 +3763,16 @@ const renderGasto=()=>{
 
         const formatoMoneda=new Intl.NumberFormat('en-MX',{style:'currency',currency:'MXN'});
 
-        gastos.forEach((gasto)=> {
+
+      const gastosMes=gastos.filter((gasto)=>{
+            if(isThisMonth(parseISO(gasto.fecha))){
+
+                return gasto.fecha;
+            }
+        });
+
+
+        gastosMes.forEach ((gasto)=> {
 
             suma=suma+parseFloat(gasto.precio);
 
@@ -3791,6 +3913,8 @@ formulario.addEventListener('submit',(e)=>{
 
     e.preventDefault();
 
+    const modo= document.querySelector('.formulario-gasto')?.dataset?.modo;
+
     if(comprobarDescripcion()&&comprobarPrecio()){
 
         const nuevoGasto={
@@ -3803,15 +3927,48 @@ formulario.addEventListener('submit',(e)=>{
         const gastosGuardados=JSON.parse(window.localStorage.getItem('gastos'));
 
 
-        if(gastosGuardados){
 
-            const nuevosGastos=[...gastosGuardados,nuevoGasto];
-            window.localStorage.setItem('gastos',JSON.stringify(nuevosGastos));
-        }
-        else {
+            if(modo==="agregarGasto"){
 
-            window.localStorage.setItem('gastos',JSON.stringify([{...nuevoGasto}]));
-        }
+                
+                if(gastosGuardados){
+                    
+                    const nuevosGastos=[...gastosGuardados,nuevoGasto];
+                    window.localStorage.setItem('gastos',JSON.stringify(nuevosGastos));
+                }
+                else {
+                    
+                    window.localStorage.setItem('gastos',JSON.stringify([{...nuevoGasto}]));
+                }
+                
+            }
+            else if(modo==="editarGasto"){
+                
+                const id=document.getElementById('formulario-gasto').dataset.id;
+                let indexEditar;
+
+                gastosGuardados.forEach((gasto,index)=> {
+
+                    if(gasto.id===id){
+                        indexEditar=index;
+                    }
+
+                });
+
+                const nuevosGastos=[...gastosGuardados];
+
+                nuevosGastos[indexEditar]={
+                    ...gastosGuardados[indexEditar],
+                    descripcion:descripcion.value,
+                    precio:precio.value
+                };
+
+
+                window.localStorage.setItem('gastos',JSON.stringify(nuevosGastos));
+            }
+        
+        
+
         
         renderGasto();
         cerrarFormulario();
@@ -3822,6 +3979,65 @@ formulario.addEventListener('submit',(e)=>{
 
         
     }
+
+
+
+});
+
+const contenedorGastos=document.getElementById('gastos');
+
+
+contenedorGastos.addEventListener('click',(e)=>{
+
+    const gasto=e.target.closest('.gasto');
+
+    if(gasto){
+
+        if(gasto.scrollLeft>0){
+            gasto.querySelector('.gasto__info').scrollIntoView({
+                behavior:'smooth',
+                inline:'start',
+                block:'nearest'
+            });
+        }
+        else {
+            gasto.querySelector('.gasto__acciones').scrollIntoView({
+                behavior:'smooth',
+                inline:'start',
+                block:'nearest'
+            });
+        }
+    }
+    if(e.target.closest('[data-accion="editar-gasto"]')){
+
+        const gastosGuardados=JSON.parse(window.localStorage.getItem('gastos'));
+        const id=gasto.dataset.id;
+
+        let descripcion="";
+        let precio="";
+
+        gastosGuardados.forEach((gasto)=> {
+
+            if(gasto.id===id){
+                descripcion=gasto.descripcion;
+                precio=gasto.precio;
+            }
+
+            document.querySelector('.formulario-gasto').dataset.id=id;
+            document.getElementById('descripcion').value=descripcion;
+            document.getElementById('precio').value=precio;
+
+            
+            
+        });
+
+        
+        
+        abrirFormulario("editarGasto");
+
+    }
+
+
 
 });
 
